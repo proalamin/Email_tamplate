@@ -73,10 +73,21 @@ class UploadStudentsView(APIView):
         imported = 0
         emails_sent = 0
         failed_emails = []
+        skipped_rows = 0
         email_count_this_batch = 0
 
-        for _, row in df.iterrows():
+        for index, row in df.iterrows():
             try:
+                # Check if all required fields are present and not empty
+                if pd.isna(row['Name']) or pd.isna(row['Email']) or pd.isna(row['Course Name']) or pd.isna(row['Link']):
+                    skipped_rows += 1
+                    continue
+                
+                # Check if fields are not empty strings
+                if not str(row['Name']).strip() or not str(row['Email']).strip() or not str(row['Course Name']).strip() or not str(row['Link']).strip():
+                    skipped_rows += 1
+                    continue
+                
                 student, created = Student.objects.get_or_create(
                     email=row['Email'],
                     defaults={
@@ -114,6 +125,10 @@ class UploadStudentsView(APIView):
             'pending': pending_count,
             'info': f'Rate limit: 20 emails/hour. {pending_count} emails pending.'
         }
+        
+        if skipped_rows > 0:
+            response_data['warning'] = f'{skipped_rows} incomplete rows skipped'
+            
         if failed_emails:
             response_data['failed_emails'] = failed_emails
             

@@ -291,6 +291,12 @@
             border: 1px solid #f5c6cb;
         }
 
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -433,6 +439,7 @@
         <!-- Alert Messages -->
         <div id="alertSuccess" class="alert alert-success"></div>
         <div id="alertError" class="alert alert-error"></div>
+        <div id="alertWarning" class="alert alert-warning"></div>
 
         <!-- Rate Limit Info -->
         <div class="rate-limit-info">
@@ -503,6 +510,7 @@
         const loading = document.getElementById('loading');
         const alertSuccess = document.getElementById('alertSuccess');
         const alertError = document.getElementById('alertError');
+        const alertWarning = document.getElementById('alertWarning');
         const stats = document.getElementById('stats');
         
         let selectedFile = null;
@@ -559,6 +567,9 @@
 
                 if (response.ok) {
                     showAlert('success', data.message);
+                    if (data.warning) {
+                        showAlert('warning', data.warning);
+                    }
                     loadStudents();
                     selectedFile = null;
                     fileInput.value = '';
@@ -818,7 +829,15 @@
 
         // Show alert
         function showAlert(type, message) {
-            const alert = type === 'success' ? alertSuccess : alertError;
+            let alert;
+            if (type === 'success') {
+                alert = alertSuccess;
+            } else if (type === 'warning') {
+                alert = alertWarning;
+            } else {
+                alert = alertError;
+            }
+            
             alert.textContent = message;
             alert.style.display = 'block';
             
