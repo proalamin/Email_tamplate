@@ -8,6 +8,7 @@ from django.utils import timezone
 from datetime import timedelta
 import pandas as pd
 import time
+import requests
 
 from .models import Student
 from .serializers import StudentSerializer
@@ -15,6 +16,110 @@ from .serializers import StudentSerializer
 # Rate limiting: 20 emails per hour
 EMAILS_PER_HOUR = 20
 EMAIL_DELAY_SECONDS = 3600 / EMAILS_PER_HOUR  # 180 seconds = 3 minutes between emails
+
+
+def send_sms(mobile, name, course_name, link):
+    """Helper function to send SMS (using SMS API)"""
+    # Note: You need to configure SMS API credentials
+    # Popular options: Twilio, Nexmo, BulkSMS, etc.
+    
+    message = f"Dear {name}, You are interested in {course_name}. Enroll now: {link}"
+    
+    # Example with a generic SMS API (replace with your actual API)
+    try:
+        # Uncomment and configure when you have SMS API
+        # api_url = "https://api.sms-provider.com/send"
+        # payload = {
+        #     'api_key': 'YOUR_API_KEY',
+        #     'to': mobile,
+        #     'message': message
+        # }
+        # response = requests.post(api_url, json=payload)
+        # return response.status_code == 200
+        
+        # For now, just log (remove this in production)
+        print(f"SMS would be sent to {mobile}: {message}")
+        return True
+    except Exception as e:
+        print(f"SMS Error: {str(e)}")
+        return False
+
+
+def send_admin_confirmation(student):
+    """Send confirmation email to admin when student email is sent"""
+    subject = f"✅ Email Sent Successfully - {student.name}"
+    
+    text_message = f"""Email Delivery Confirmation
+
+Student email has been sent successfully!
+
+Student Details:
+- Name: {student.name}
+- Email: {student.email}
+- Mobile: {student.mobile or 'N/A'}
+- Course: {student.course_name}
+
+Email Status: ✅ Sent
+SMS Status: {'✅ Sent' if student.sms_sent else '⏳ Pending' if student.mobile else 'N/A'}
+
+This is an automated confirmation from Email Automation System.
+"""
+
+    html_message = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }}
+        .container {{ background: white; padding: 30px; border-radius: 10px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }}
+        .content {{ color: #333; line-height: 1.6; }}
+        .info-box {{ background: #f8f9fa; padding: 15px; border-left: 4px solid #11998e; margin: 20px 0; border-radius: 5px; }}
+        .status {{ display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; margin: 5px 0; }}
+        .status-success {{ background: #d4edda; color: #155724; }}
+        .status-pending {{ background: #fff3cd; color: #856404; }}
+        .footer {{ margin-top: 20px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #999; font-size: 12px; text-align: center; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>✅ Email Sent Successfully</h2>
+        </div>
+        <div class="content">
+            <p><strong>Student email has been delivered!</strong></p>
+            <div class="info-box">
+                <p><strong>Name:</strong> {student.name}</p>
+                <p><strong>Email:</strong> {student.email}</p>
+                <p><strong>Mobile:</strong> {student.mobile or 'N/A'}</p>
+                <p><strong>Course:</strong> {student.course_name}</p>
+            </div>
+            <p><strong>Delivery Status:</strong></p>
+            <p>
+                <span class="status status-success">✅ Email Sent</span>
+                {'<span class="status status-success">✅ SMS Sent</span>' if student.sms_sent else '<span class="status status-pending">⏳ SMS Pending</span>' if student.mobile else ''}
+            </p>
+            <div class="footer">
+                <p>This is an automated confirmation from Email Automation System.</p>
+                <p>Sent at: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+    try:
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_message,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[settings.EMAIL_HOST_USER]  # Send to yourself
+        )
+        email.attach_alternative(html_message, "text/html")
+        email.send(fail_silently=True)  # Don't fail if admin email fails
+    except Exception as e:
+        print(f"Admin notification error: {str(e)}")
 
 
 def home(request):
@@ -79,14 +184,18 @@ class UploadStudentsView(APIView):
         for index, row in df.iterrows():
             try:
                 # Check if all required fields are present and not empty
-                if pd.isna(row['Name']) or pd.isna(row['Email']) or pd.isna(row['Course Name']) or pd.isna(row['Link']):
+                required_fields = ['Name', 'Email', 'Course Name', 'Link']
+                if any(pd.isna(row[field]) for field in required_fields):
                     skipped_rows += 1
                     continue
                 
                 # Check if fields are not empty strings
-                if not str(row['Name']).strip() or not str(row['Email']).strip() or not str(row['Course Name']).strip() or not str(row['Link']).strip():
+                if not all(str(row[field]).strip() for field in required_fields):
                     skipped_rows += 1
                     continue
+                
+                # Get mobile (optional field)
+                mobile = str(row.get('Mobile', '')).strip() if 'Mobile' in row and not pd.isna(row.get('Mobile')) else None
                 
                 student, created = Student.objects.get_or_create(
                     email=row['Email'],
@@ -94,6 +203,7 @@ class UploadStudentsView(APIView):
                         'name': row['Name'],
                         'course_name': row['Course Name'],
                         'link': row['Link'],
+                        'mobile': mobile,
                     }
                 )
                 

@@ -451,7 +451,7 @@
             <div class="upload-area" id="uploadArea">
                 <div class="upload-icon">📁</div>
                 <div class="upload-text">Click to upload or drag and drop</div>
-                <div class="upload-subtext">Excel file (.xlsx, .xls) with columns: Name, Email, Course Name, Link</div>
+                <div class="upload-subtext">Excel file (.xlsx, .xls) with columns: Name, Email, Mobile, Course Name, Link</div>
                 <input type="file" id="fileInput" accept=".xlsx,.xls">
             </div>
             <div style="text-align: center; margin-top: 20px;">
@@ -688,6 +688,7 @@
                             <th>#</th>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Mobile</th>
                             <th>Course Name</th>
                             <th>Link</th>
                             <th>Status</th>
@@ -700,6 +701,7 @@
                                 <td>${index + 1}</td>
                                 <td>${student.name}</td>
                                 <td>${student.email}</td>
+                                <td>${student.mobile || 'N/A'}</td>
                                 <td>${student.course_name}</td>
                                 <td>
                                     <a href="#" class="link-btn" onclick="handleLinkClick(event, ${student.id}, '${student.link}')">
