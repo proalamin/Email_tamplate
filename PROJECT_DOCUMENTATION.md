@@ -15,7 +15,7 @@
 
 ## 🎯 Project Overview
 
-**Innovative Skills BD Email Automation System** - A Django-based email automation platform for sending personalized course enrollment emails to students.
+**Innovative Skills LTD Email Automation System** - A Django-based email automation platform for sending personalized course enrollment emails to students.
 
 ### Key Highlights:
 - ✅ Manual email control (no auto-send on upload)
@@ -196,7 +196,7 @@ http://127.0.0.1:8000/
    {link}
    
    Best regards,
-   Innovative Skills BD
+   Innovative Skills LTD
    ```
 4. Click placeholder buttons to insert: 👤 Name, 📚 Course Name, 🔗 Link
 5. Click "Send to All Students"
@@ -366,7 +366,7 @@ Response:
 ```html
 ┌─────────────────────────────────────┐
 │         DARK NAVY HEADER            │
-│    Innovative Skills BD             │
+│    Innovative Skills LTD            │
 │    Transform Your Career...         │
 ├─────────────────────────────────────┤
 │ ━━━━ Orange Decorative Line        │
@@ -386,12 +386,12 @@ Response:
 │         DARK NAVY FOOTER            │
 │                                     │
 │ Best regards,                       │
-│ Innovative Skills BD Team           │
+│ Innovative Skills LTD Team          │
 │                                     │
 │ 📧 info@innovativeskillsbd.com     │
 │ 🌐 www.innovativeskillsbd.com      │
 │                                     │
-│ © 2026 Innovative Skills BD         │
+│ © 2026 Innovative Skills LTD        │
 └─────────────────────────────────────┘
 ```
 
@@ -744,7 +744,7 @@ MIT License - Free for personal and commercial use
 ## 👨‍💻 Developer Information
 
 **Project:** Email Automation System
-**Organization:** Innovative Skills BD
+**Organization:** Innovative Skills LTD
 **Repository:** https://github.com/Raihanroo/Email_tamplate
 **Developer:** Raihan
 **Email:** raihanroo21@gmail.com

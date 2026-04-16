@@ -1,4 +1,4 @@
-# 📧 Email Automation System - Innovative Skills BD
+# 📧 Email Automation System - Innovative Skills LTD
 
 Professional email automation system for sending personalized course enrollment emails with custom templates and real-time tracking.
 
@@ -111,7 +111,7 @@ http://127.0.0.1:8000/
 ```
 ┌─────────────────────────────┐
 │   DARK NAVY HEADER          │
-│   Innovative Skills BD      │
+│   Innovative Skills LTD     │
 ├─────────────────────────────┤
 │ Your custom message...      │
 │                             │

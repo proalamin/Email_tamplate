@@ -28,7 +28,7 @@ Please click the link below to enroll:
 {student.link}
 
 Best regards,
-Innovative Skills BD"""
+Innovative Skills LTD"""
 
     html_message = render_to_string('emails/course_enrollment.html', {
         'name': student.name,
@@ -278,7 +278,7 @@ class SendCustomTemplateView(APIView):
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
                                     <td align="center">
-                                        <h1 style="color: #ffffff; margin: 0 0 12px 0; font-size: 34px; font-weight: bold; letter-spacing: -0.5px; line-height: 1.2;">Innovative Skills BD</h1>
+                                        <h1 style="color: #ffffff; margin: 0 0 12px 0; font-size: 34px; font-weight: bold; letter-spacing: -0.5px; line-height: 1.2;">Innovative Skills LTD</h1>
                                         <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 16px; font-weight: 400; letter-spacing: 0.3px;">Transform Your Career with Expert Training</p>
                                     </td>
                                 </tr>
@@ -326,7 +326,7 @@ class SendCustomTemplateView(APIView):
                                     <td align="center">
                                         <p style="color: rgba(255,255,255,0.7); margin: 0 0 18px 0; font-size: 16px; line-height: 1.6; font-weight: 400;">
                                             Best regards,<br>
-                                            <strong style="color: #ff6b35; font-weight: 700; font-size: 17px;">Innovative Skills BD Team</strong>
+                                            <strong style="color: #ff6b35; font-weight: 700; font-size: 17px;">Innovative Skills LTD Team</strong>
                                         </p>
                                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 20px auto;">
                                             <tr>
@@ -345,7 +345,7 @@ class SendCustomTemplateView(APIView):
                                             </tr>
                                         </table>
                                         <p style="color: rgba(255,255,255,0.4); margin: 20px 0 0 0; font-size: 12px; line-height: 1.5;">
-                                            © 2026 Innovative Skills BD. All rights reserved.<br>
+                                            © 2026 Innovative Skills LTD. All rights reserved.<br>
                                             <span style="color: rgba(255,255,255,0.3); font-size: 11px;">This email was sent to you because you expressed interest in our courses.</span>
                                         </p>
                                     </td>
