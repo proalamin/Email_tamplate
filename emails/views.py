@@ -62,9 +62,17 @@ class UploadStudentsView(APIView):
             Student.objects.all().delete()
 
         try:
-            df = pd.read_excel(file)
+            # Read Excel with data_only=True to ignore formatting
+            df = pd.read_excel(file, engine='openpyxl')
         except Exception as e:
-            return Response({'error': f'Failed to read Excel file: {str(e)}'}, status=400)
+            # Try alternative method if first fails
+            try:
+                df = pd.read_excel(file, engine='openpyxl', data_only=True)
+            except:
+                return Response({
+                    'error': f'Failed to read Excel file: {str(e)}',
+                    'hint': 'Please save your Excel file as a simple .xlsx without complex formatting'
+                }, status=400)
 
         column_mapping = {}
         for col in df.columns:
