@@ -917,7 +917,25 @@
                     dataEntryForm.reset();
                     loadStudents();
                 } else {
-                    showAlert('error', data.error || 'Failed to add student');
+                    // Check if it's a duplicate email error
+                    if (data.error && data.error.includes('already exists')) {
+                        // Show confirmation popup
+                        const confirmUpdate = confirm(
+                            `⚠️ Email "${formData.email}" already exists in the database.\n\n` +
+                            `Do you want to update the existing student record with new information?`
+                        );
+                        
+                        if (confirmUpdate) {
+                            // User wants to update - call update API
+                            await updateExistingStudent(formData);
+                        } else {
+                            // User cancelled - keep modal open for correction
+                            showAlert('warning', '⚠️ Student not added. Please use a different email or update the existing record.');
+                        }
+                    } else {
+                        // Other errors
+                        showAlert('error', data.error || 'Failed to add student');
+                    }
                 }
             } catch (error) {
                 showAlert('error', 'Network error: ' + error.message);
@@ -926,6 +944,36 @@
                 submitDataEntryBtn.disabled = false;
             }
         });
+
+        // Update existing student function
+        async function updateExistingStudent(formData) {
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/update-student/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('success', '✅ Student updated successfully!');
+                    dataEntryModal.style.display = 'none';
+                    dataEntryForm.reset();
+                    loadStudents();
+                } else {
+                    showAlert('error', data.error || 'Failed to update student');
+                }
+            } catch (error) {
+                showAlert('error', 'Network error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
 
         // Populate dropdowns with unique courses and links
         function populateDropdowns() {

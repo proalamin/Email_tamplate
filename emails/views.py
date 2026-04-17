@@ -467,3 +467,48 @@ class AddStudentView(APIView):
             return Response({
                 'error': f'Failed to add student: {str(e)}'
             }, status=500)
+
+
+
+class UpdateStudentView(APIView):
+    """Update existing student by email"""
+    
+    def post(self, request):
+        try:
+            data = request.data
+            email = data.get('email')
+            
+            if not email:
+                return Response({
+                    'error': 'Email is required'
+                }, status=400)
+            
+            # Find student by email
+            try:
+                student = Student.objects.get(email=email)
+            except Student.DoesNotExist:
+                return Response({
+                    'error': 'Student not found'
+                }, status=404)
+            
+            # Update student fields
+            if data.get('name'):
+                student.name = data['name']
+            if data.get('mobile') is not None:
+                student.mobile = data['mobile']
+            if data.get('course_name'):
+                student.course_name = data['course_name']
+            if data.get('link'):
+                student.link = data['link']
+            
+            student.save()
+            
+            return Response({
+                'message': 'Student updated successfully',
+                'student': StudentSerializer(student).data
+            }, status=200)
+            
+        except Exception as e:
+            return Response({
+                'error': f'Failed to update student: {str(e)}'
+            }, status=500)
