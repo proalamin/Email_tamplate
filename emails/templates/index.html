@@ -1058,11 +1058,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${students.map((student, index) => `
+                        ${students.map((student, index) => {
+                            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(student.email);
+                            return `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>${student.name}</td>
-                                <td>${student.email}</td>
+                                <td>
+                                    <span style="display: flex; align-items: center; gap: 5px;">
+                                        ${emailValid ? 
+                                            '<span style="color: #10b981; font-weight: bold;" title="Valid email">✓</span>' : 
+                                            '<span style="color: #ef4444; font-weight: bold;" title="Invalid email format">✗</span>'
+                                        }
+                                        <span style="${!emailValid ? 'color: #ef4444; text-decoration: underline wavy;' : ''}">${student.email}</span>
+                                    </span>
+                                </td>
                                 <td>${student.mobile || 'N/A'}</td>
                                 <td>${student.course_name}</td>
                                 <td>
@@ -1086,11 +1096,17 @@
                                     </div>
                                 </td>
                             </tr>
-                        `).join('')}
+                        `}).join('')}
                     </tbody>
                 </table>
             `;
             document.getElementById('tableContent').innerHTML = html;
+        }
+
+        // Email validation function
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
         }
 
         // Update stats
@@ -1098,10 +1114,16 @@
             const total = students.length;
             const sent = students.filter(s => s.email_sent).length;
             const pending = total - sent;
+            const invalidEmails = students.filter(s => !isValidEmail(s.email)).length;
 
             document.getElementById('totalStudents').textContent = total;
             document.getElementById('emailsSent').textContent = sent;
             document.getElementById('emailsPending').textContent = pending;
+            
+            // Show warning if invalid emails found
+            if (invalidEmails > 0) {
+                showAlert('warning', `⚠️ ${invalidEmails} invalid email(s) detected! Check the red marked emails.`);
+            }
         }
 
         // Send single email
