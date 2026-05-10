@@ -1,14 +1,24 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 import pandas as pd
 import time
 
 from .models import Student, EmailTemplate
 from .serializers import StudentSerializer
+from .email_utils import send_email_with_rotation, get_email_stats
+
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    """Custom authentication class that doesn't enforce CSRF for API calls"""
+    def enforce_csrf(self, request):
+        return  # Skip CSRF check
 
 
 def home(request):
@@ -46,8 +56,10 @@ Innovative Skills LTD"""
     email.send(fail_silently=False)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UploadStudentsView(APIView):
     """Upload Excel file and import student data"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     
     def post(self, request):
         file = request.FILES.get('file')
@@ -161,8 +173,10 @@ class UploadStudentsView(APIView):
         return Response(response_data)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class StudentListView(APIView):
     """Get all students"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     
     def get(self, request):
         students = Student.objects.all()
@@ -170,8 +184,10 @@ class StudentListView(APIView):
         return Response(serializer.data)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class SendEmailsView(APIView):
     """Disabled - Use custom template instead"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     
     def post(self, request):
         return Response({
@@ -180,8 +196,10 @@ class SendEmailsView(APIView):
         }, status=400)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class SendCustomTemplateView(APIView):
     """Send custom email template to all students"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     
     def post(self, request):
         subject = request.data.get('subject', '').strip()
@@ -371,21 +389,21 @@ class SendCustomTemplateView(APIView):
 </html>
 """
                 
-                email = EmailMultiAlternatives(
+                # Use email rotation system
+                result = send_email_with_rotation(
                     subject=personalized_subject,
-                    body=personalized_message,
-                    from_email=settings.EMAIL_HOST_USER,
-                    to=[student.email]
+                    text_message=personalized_message,
+                    html_message=html_message,
+                    recipient_email=student.email
                 )
-                email.attach_alternative(html_message, "text/html")
-                email.send(fail_silently=False)
                 
-                student.email_sent = True
-                student.template_sent = True
-                student.save()
-                sent_count += 1
-                
-                time.sleep(0.5)
+                if result['success']:
+                    student.email_sent = True
+                    student.template_sent = True
+                    student.save()
+                    sent_count += 1
+                else:
+                    failed_emails.append(f"{student.email}: {result['message']}")
                 
             except Exception as e:
                 failed_emails.append(f"{student.email}: {str(e)}")
@@ -405,8 +423,10 @@ class SendCustomTemplateView(APIView):
         return Response(response_data)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class DeleteStudentView(APIView):
     """Delete a single student"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     
     def delete(self, request, student_id):
         try:
@@ -418,8 +438,10 @@ class DeleteStudentView(APIView):
             return Response({'error': 'Student not found'}, status=404)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class DeleteAllStudentsView(APIView):
     """Delete all students"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     
     def delete(self, request):
         count = Student.objects.count()
@@ -428,8 +450,10 @@ class DeleteAllStudentsView(APIView):
 
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AddStudentView(APIView):
     """Add a single student manually"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     
     def post(self, request):
         try:
@@ -470,8 +494,10 @@ class AddStudentView(APIView):
 
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UpdateStudentView(APIView):
     """Update existing student by email"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
     
     def post(self, request):
         try:
@@ -512,3 +538,13 @@ class UpdateStudentView(APIView):
             return Response({
                 'error': f'Failed to update student: {str(e)}'
             }, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class EmailStatsView(APIView):
+    """Get email sending statistics and account usage"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
+    
+    def get(self, request):
+        stats = get_email_stats()
+        return Response(stats)

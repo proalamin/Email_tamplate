@@ -8,7 +8,8 @@ from .views import (
     DeleteStudentView,
     DeleteAllStudentsView,
     AddStudentView,
-    UpdateStudentView
+    UpdateStudentView,
+    EmailStatsView
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path('update-student/', UpdateStudentView.as_view()),
     path('delete-student/<int:student_id>/', DeleteStudentView.as_view()),
     path('delete-all/', DeleteAllStudentsView.as_view()),
+    path('email-stats/', EmailStatsView.as_view()),
 ]

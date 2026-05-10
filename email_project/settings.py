@@ -25,6 +25,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "email_project.middleware.DisableCSRFMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -78,8 +79,35 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'innovativeskillsbd@gmail.com'
-EMAIL_HOST_PASSWORD = 'mtvo nyyt sken lnrg'
+EMAIL_HOST_USER = 'pro.alamin247@gmail.com'
+EMAIL_HOST_PASSWORD = 'wszj ibxs scvs zaau'
+
+# Multiple Email Accounts for Rotation (to bypass Gmail limits)
+# Add more accounts here to increase sending capacity
+EMAIL_ACCOUNTS = [
+    {
+        'email': 'pro.alamin247@gmail.com',
+        'password': 'wszj ibxs scvs zaau',
+        'daily_limit': 450,  # Safe limit (Gmail allows ~500/day)
+        'sent_today': 0,
+    },
+    # Add more accounts below:
+    # {
+    #     'email': 'your-second-email@gmail.com',
+    #     'password': 'your-app-password',
+    #     'daily_limit': 450,
+    #     'sent_today': 0,
+    # },
+    # {
+    #     'email': 'your-third-email@gmail.com',
+    #     'password': 'your-app-password',
+    #     'daily_limit': 450,
+    #     'sent_today': 0,
+    # },
+]
+
+# Email sending delay (seconds between emails to avoid rate limiting)
+EMAIL_SEND_DELAY = 1  # 1 second delay between emails
 
 
 # CORS Settings - Allow API access from any frontend
@@ -124,6 +152,8 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [],
 }
 
 # CSRF Settings for API
