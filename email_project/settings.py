@@ -6,7 +6,7 @@ SECRET_KEY = "django-insecure-zf!wvdxp9k!jihk0qp%n2@+^t+k_1r_xlpln&6%4ecga@v^k=3
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['alamintkg2003.pythonanywhere.com', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -71,6 +71,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -161,4 +162,5 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:8000',
+    'https://alamintkg2003.pythonanywhere.com',
 ]
