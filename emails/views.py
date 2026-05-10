@@ -7,11 +7,12 @@ from django.template.loader import render_to_string
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.db import models
 import pandas as pd
 import time
 
-from .models import Student, EmailTemplate
-from .serializers import StudentSerializer
+from .models import Student, EmailTemplate, EmailAccount
+from .serializers import StudentSerializer, EmailAccountSerializer
 from .email_utils import send_email_with_rotation, get_email_stats
 
 
@@ -548,3 +549,197 @@ class EmailStatsView(APIView):
     def get(self, request):
         stats = get_email_stats()
         return Response(stats)
+
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class EmailAccountListView(APIView):
+    """Get all email accounts with their statistics"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
+    
+    def get(self, request):
+        accounts = EmailAccount.objects.filter(is_active=True)
+        for account in accounts:
+            account.reset_if_new_day()
+        serializer = EmailAccountSerializer(accounts, many=True)
+        return Response(serializer.data)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddEmailAccountView(APIView):
+    """Add a new email account"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
+    
+    def post(self, request):
+        email = request.data.get('email', '').strip()
+        password = request.data.get('password', '').strip()
+        daily_limit = request.data.get('daily_limit', 450)
+        
+        if not email or not password:
+            return Response({
+                'error': 'Email and password are required'
+            }, status=400)
+        
+        # Check if account already exists
+        if EmailAccount.objects.filter(email=email).exists():
+            return Response({
+                'error': 'This email account already exists'
+            }, status=400)
+        
+        try:
+            # Get the highest priority number and add 1
+            max_priority = EmailAccount.objects.aggregate(
+                max_priority=models.Max('priority')
+            )['max_priority']
+            
+            new_priority = (max_priority + 1) if max_priority is not None else 0
+            
+            account = EmailAccount.objects.create(
+                email=email,
+                password=password,
+                daily_limit=daily_limit,
+                priority=new_priority
+            )
+            return Response({
+                'message': f'Email account added successfully with priority {new_priority}',
+                'account': EmailAccountSerializer(account).data
+            }, status=201)
+        except Exception as e:
+            return Response({
+                'error': f'Failed to add email account: {str(e)}'
+            }, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdateEmailAccountView(APIView):
+    """Update an existing email account"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
+    
+    def post(self, request, account_id):
+        try:
+            account = EmailAccount.objects.get(id=account_id)
+        except EmailAccount.DoesNotExist:
+            return Response({'error': 'Email account not found'}, status=404)
+        
+        # Update fields if provided
+        if 'email' in request.data:
+            account.email = request.data['email']
+        if 'password' in request.data:
+            account.password = request.data['password']
+        if 'daily_limit' in request.data:
+            account.daily_limit = request.data['daily_limit']
+        if 'is_active' in request.data:
+            account.is_active = request.data['is_active']
+        if 'priority' in request.data:
+            account.priority = request.data['priority']
+        
+        account.save()
+        
+        return Response({
+            'message': 'Email account updated successfully',
+            'account': EmailAccountSerializer(account).data
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SetAccountPriorityView(APIView):
+    """Set priority for an email account (lower = higher priority)"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
+    
+    def post(self, request, account_id):
+        try:
+            account = EmailAccount.objects.get(id=account_id)
+        except EmailAccount.DoesNotExist:
+            return Response({'error': 'Email account not found'}, status=404)
+        
+        new_priority = request.data.get('priority', 0)
+        account.priority = new_priority
+        account.save()
+        
+        return Response({
+            'message': f'Priority set to {new_priority}',
+            'account': EmailAccountSerializer(account).data
+        })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MoveAccountUpView(APIView):
+    """Move account up in priority (decrease priority number)"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
+    
+    def post(self, request, account_id):
+        try:
+            account = EmailAccount.objects.get(id=account_id)
+        except EmailAccount.DoesNotExist:
+            return Response({'error': 'Email account not found'}, status=404)
+        
+        # Find account with priority just above this one
+        higher_priority_account = EmailAccount.objects.filter(
+            priority__lt=account.priority
+        ).order_by('-priority').first()
+        
+        if higher_priority_account:
+            # Swap priorities
+            account.priority, higher_priority_account.priority = \
+                higher_priority_account.priority, account.priority
+            account.save()
+            higher_priority_account.save()
+            
+            return Response({
+                'message': 'Account moved up',
+                'accounts': EmailAccountSerializer(
+                    EmailAccount.objects.filter(is_active=True).order_by('priority'), 
+                    many=True
+                ).data
+            })
+        else:
+            return Response({'message': 'Account is already at top priority'})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MoveAccountDownView(APIView):
+    """Move account down in priority (increase priority number)"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
+    
+    def post(self, request, account_id):
+        try:
+            account = EmailAccount.objects.get(id=account_id)
+        except EmailAccount.DoesNotExist:
+            return Response({'error': 'Email account not found'}, status=404)
+        
+        # Find account with priority just below this one
+        lower_priority_account = EmailAccount.objects.filter(
+            priority__gt=account.priority
+        ).order_by('priority').first()
+        
+        if lower_priority_account:
+            # Swap priorities
+            account.priority, lower_priority_account.priority = \
+                lower_priority_account.priority, account.priority
+            account.save()
+            lower_priority_account.save()
+            
+            return Response({
+                'message': 'Account moved down',
+                'accounts': EmailAccountSerializer(
+                    EmailAccount.objects.filter(is_active=True).order_by('priority'), 
+                    many=True
+                ).data
+            })
+        else:
+            return Response({'message': 'Account is already at lowest priority'})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DeleteEmailAccountView(APIView):
+    """Delete an email account"""
+    authentication_classes = (CsrfExemptSessionAuthentication,)
+    
+    def delete(self, request, account_id):
+        try:
+            account = EmailAccount.objects.get(id=account_id)
+            email = account.email
+            account.delete()
+            return Response({'message': f'Email account {email} deleted successfully'})
+        except EmailAccount.DoesNotExist:
+            return Response({'error': 'Email account not found'}, status=404)

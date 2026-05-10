@@ -1,0 +1,39 @@
+<!-- Email Accounts Section -->
+<div class="upload-section" id="emailAccountsSection" style="display: none;">
+    <h2 style="color: #667eea; margin-bottom: 20px;">📧 Email Account Management</h2>
+    <p style="color: #666; margin-bottom: 20px;">Add multiple Gmail accounts to bypass daily sending limits (450 emails/account/day)</p>
+    
+    <!-- Add New Account Form -->
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h3 style="color: #667eea; margin-bottom: 15px;">➕ Add New Email Account</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 150px auto; gap: 10px; align-items: end;">
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Email Address</label>
+                <input type="email" id="newAccountEmail" placeholder="your-email@gmail.com" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">App Password</label>
+                <input type="password" id="newAccountPassword" placeholder="xxxx xxxx xxxx xxxx" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Daily Limit</label>
+                <input type="number" id="newAccountLimit" value="450" min="1" max="500" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+            </div>
+            <div>
+                <button class="btn btn-success" id="addAccountBtn">➕ Add Account</button>
+            </div>
+        </div>
+        <p style="margin-top: 10px; font-size: 13px; color: #666;">
+            💡 Get App Password: <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color: #667eea;">https://myaccount.google.com/apppasswords</a>
+        </p>
+    </div>
+
+    <!-- Email Accounts List -->
+    <div id="emailAccountsList">
+        <div class="empty-state">
+            <div style="font-size: 60px; margin-bottom: 20px;">📧</div>
+            <h3>No Email Accounts Added</h3>
+            <p>Add your first email account to start sending emails</p>
+        </div>
+    </div>
+</div>

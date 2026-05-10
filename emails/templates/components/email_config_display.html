@@ -1,0 +1,94 @@
+<!-- Email Configuration Display -->
+<div class="upload-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+    <h2 style="color: white; margin-bottom: 20px;">⚙️ Current Email Configuration</h2>
+    
+    <div id="currentEmailConfig" style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; backdrop-filter: blur(10px);">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <p style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">📧 Active Email Account:</p>
+                <p style="font-size: 20px; font-weight: bold;" id="activeEmail">Loading...</p>
+            </div>
+            <div>
+                <p style="font-size: 14px; opacity: 0.8; margin-bottom: 5px;">📊 Usage Today:</p>
+                <p style="font-size: 20px; font-weight: bold;" id="activeUsage">Loading...</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <p style="font-size: 14px; opacity: 0.8; margin-bottom: 10px;">📈 All Accounts Summary:</p>
+            <div id="allAccountsSummary" style="font-size: 16px; font-weight: 600;">
+                Loading...
+            </div>
+        </div>
+    </div>
+    
+    <button class="btn btn-secondary" onclick="refreshEmailConfig()" style="margin-top: 15px; background: rgba(255,255,255,0.2); border: 2px solid white;">
+        🔄 Refresh Configuration
+    </button>
+</div>
+
+<script>
+// Load and display current email configuration
+async function loadEmailConfig() {
+    try {
+        const response = await fetch('/api/email-accounts/');
+        const accounts = await response.json();
+        
+        if (accounts.length === 0) {
+            document.getElementById('activeEmail').textContent = 'No accounts configured';
+            document.getElementById('activeUsage').textContent = 'N/A';
+            document.getElementById('allAccountsSummary').textContent = 'Please add an email account first';
+            return;
+        }
+        
+        // Find the account with lowest usage (will be used next)
+        const activeAccount = accounts.reduce((prev, current) => 
+            (prev.sent_today < current.sent_today) ? prev : current
+        );
+        
+        // Display active account
+        document.getElementById('activeEmail').textContent = activeAccount.email;
+        document.getElementById('activeUsage').textContent = 
+            `${activeAccount.sent_today} / ${activeAccount.daily_limit} (${activeAccount.percentage_used}%)`;
+        
+        // Display all accounts summary
+        const totalSent = accounts.reduce((sum, acc) => sum + acc.sent_today, 0);
+        const totalCapacity = accounts.reduce((sum, acc) => sum + acc.daily_limit, 0);
+        const totalRemaining = totalCapacity - totalSent;
+        
+        document.getElementById('allAccountsSummary').innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;">
+                <div>
+                    <div style="font-size: 24px;">${accounts.length}</div>
+                    <div style="font-size: 12px; opacity: 0.8;">Total Accounts</div>
+                </div>
+                <div>
+                    <div style="font-size: 24px;">${totalSent}</div>
+                    <div style="font-size: 12px; opacity: 0.8;">Sent Today</div>
+                </div>
+                <div>
+                    <div style="font-size: 24px;">${totalRemaining}</div>
+                    <div style="font-size: 12px; opacity: 0.8;">Remaining</div>
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Failed to load email config:', error);
+        document.getElementById('activeEmail').textContent = 'Error loading';
+        document.getElementById('activeUsage').textContent = 'Error';
+        document.getElementById('allAccountsSummary').textContent = 'Failed to load configuration';
+    }
+}
+
+function refreshEmailConfig() {
+    loadEmailConfig();
+    showAlert('success', 'Configuration refreshed!');
+}
+
+// Load on page load
+loadEmailConfig();
+
+// Auto-refresh every 30 seconds
+setInterval(loadEmailConfig, 30000);
+</script>

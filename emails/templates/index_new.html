@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Automation System - Innovative Skills LTD</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <!-- Include Header Component -->
+        {% include 'components/header.html' %}
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Click to upload or drag and drop</div>
+                <div class="upload-subtext">Excel file (.xlsx, .xls) with columns: Name, Email, Mobile, Course Name, Link</div>
+                <input type="file" id="fileInput" accept=".xlsx,.xls">
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <label style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #fff3cd; border-radius: 10px; cursor: pointer; font-weight: 600; color: #856404; border: 2px solid #ffeaa7;">
+                    <input type="checkbox" id="replaceAllCheckbox" style="width: 18px; height: 18px; cursor: pointer;">
+                    <span>🔄 Replace all existing data (Delete old data before upload)</span>
+                </label>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" id="uploadBtn" disabled>📤 Upload & Import</button>
+                <button class="btn btn-success" id="dataEntryBtn">➕ Default Data Entry</button>
+                <button class="btn btn-primary" id="createTemplateBtn">📝 Create Template</button>
+                <button class="btn btn-warning" id="emailAccountsBtn">📧 Email Accounts</button>
+                <button class="btn btn-danger" id="deleteAllBtn" disabled>🗑️ Delete All Data</button>
+            </div>
+        </div>
+
+        <!-- Include Email Accounts Component -->
+        {% include 'components/email_accounts.html' %}
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: white; font-weight: bold;">Processing...</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalStudents">0</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="emailsSent">0</div>
+                <div class="stat-label">Emails Sent</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="emailsPending">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="table-section">
+            <div class="table-header">
+                <h2>📋 Student List</h2>
+                <button class="btn btn-primary" id="refreshBtn">🔄 Refresh</button>
+            </div>
+            
+            <div id="tableContent">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <h3>No students yet</h3>
+                    <p>Upload an Excel file to get started</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals would go here -->
+
+    <!-- Main JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- Include Email Accounts Script -->
+    {% include 'components/email_accounts_script.html' %}
+</body>
+</html>
